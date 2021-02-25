@@ -1,0 +1,62 @@
+# This is a basic workflow to help you get started with Actions
+#  enviar al env de github run: echo "NOW::$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+name: rlasso-site-ci
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [feat*, fix*]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    name: Build and Push
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Git Check Out
+        uses: actions/checkout@v2
+      - name: Node Install
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          check-latest: true
+
+      - name: Get Version
+        run: chmod +x scripts/get-version.sh && scripts/get-version.sh
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Docker Install
+        uses: docker/setup-buildx-action@v1
+        id: buildx
+        with:
+          install: true
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DR_TOKEN }}
+
+      - name: Build Image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          load: true
+          tags: ${{env.IMAGE_TAG}}
+          secrets: |
+            GIT_AUTH_TOKEN=${{ secrets.DR_TOKEN }}
+
+      - name: Docker Push
+        run: chmod +x scripts/docker-push.sh && scripts/docker-push.sh ${{env.IMAGE_TAG}} ${{github.repository_owner}}
