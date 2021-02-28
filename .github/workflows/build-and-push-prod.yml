@@ -1,0 +1,76 @@
+name: rlasso-site-ci-prod
+# Controls when the action will run.
+on:
+  pull_request:
+    branches: [master]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    name: Build and Push
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Git Check Out
+        uses: actions/checkout@v2
+
+      - name: Node Install
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+          check-latest: true
+
+      - name: Set Version
+        run: chmod +x scripts/set-version.sh && scripts/set-version.sh
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Docker Install
+        uses: docker/setup-buildx-action@v1
+        id: buildx
+        with:
+          install: true
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.DR_TOKEN }}
+
+      - name: Build Image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          load: true
+          tags: prod-${{env.IMAGE_TAG}}
+          secrets: |
+            GIT_AUTH_TOKEN=${{ secrets.DR_TOKEN }}
+
+      - name: Docker Push
+        run: chmod +x scripts/docker-push.sh && scripts/docker-push.sh prod-${{env.IMAGE_TAG}} ${{github.repository_owner}}
+
+      # - name: Snyk Scan App
+      #   continue-on-error: false
+      #   uses: snyk/actions/node@master
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Snyk Scan Docker
+        continue-on-error: false
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: prod-${{env.IMAGE_TAG}}
+          args: --file=Dockerfile --severity-threshold=high
+          
+      - name: Upload Code Scanning
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: snyk.sarif

@@ -8,7 +8,6 @@ RUN mkdir /app/src/images
 RUN ls -la
 # copy project file
 COPY package*.json ./
-
 RUN npm ci
 COPY . .
 
