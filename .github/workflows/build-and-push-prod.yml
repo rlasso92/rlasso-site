@@ -20,6 +20,8 @@ jobs:
           check-latest: true
       - name: Set Version
         run: chmod +x scripts/set-version.sh && scripts/set-version.sh
+      - name: Commit Version
+        run: chmod +x scripts/commit-version.sh && scripts/commit-version.sh ${{env.NEW_VERSION}}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Docker Install
@@ -42,13 +44,12 @@ jobs:
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.DR_TOKEN }}
       - name: Docker Push
-        run: chmod +x scripts/docker-push.sh && scripts/docker-push.sh prod-${{env.IMAGE_TAG}} ${{github.repository_owner}}
-
-      # - name: Snyk Scan App
-      #   continue-on-error: false
-      #   uses: snyk/actions/node@master
-      #   env:
-      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: chmod +x scripts/docker-push.sh && scripts/docker-push.sh prod-${{env.IMAGE_TAG}} ${{github.repository_owner}
+      - name: Snyk Scan App
+        continue-on-error: false
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       - name: Snyk Scan Docker
         continue-on-error: false
         uses: snyk/actions/docker@master
