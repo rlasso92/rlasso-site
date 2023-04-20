@@ -26,7 +26,7 @@
     "gatsby": "^2.26.1",
     "gatsby-image": "^2.11.0",
     "gatsby-plugin-remove-serviceworker": "^1.0.0",
-    "gatsby-plugin-sharp": "^2.14.3",
+    "gatsby-plugin-sharp": "^4.25.1",
     "gatsby-source-filesystem": "^2.11.1",
     "gatsby-transformer-sharp": "^2.12.0",
     "joi": "^17.4.0",
