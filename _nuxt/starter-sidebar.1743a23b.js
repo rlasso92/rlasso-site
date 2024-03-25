@@ -1,0 +1,1 @@
+import{d as t,o as a,t as o,w as s,h as n,x as r}from"./entry.9b260285.js";const _=n("div",null,null,-1),u=t({__name:"starter-sidebar",setup(c){return(i,l)=>{const e=r;return a(),o(e,null,{default:s(()=>[_]),_:1})}}});export{u as default};
