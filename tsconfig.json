@@ -1,11 +1,16 @@
 {
-  "extends": "fastify-tsconfig",
+  // https://nuxt.com/docs/guide/concepts/typescript
+  //
+  // You have to select the path to your tsconfig.json layers
+  // - ./app/.nuxt/tsconfig.json - for the quickstarter app
+  // - ./.demo/.nuxt/tsconfig.json - for the demo app
+  //
+  "extends": "./app/.nuxt/tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "esModuleInterop": true,
-    "typeRoots": ["src/@types", "node_modules/@types/"]
-  },
-  "include": ["src/**/*.ts"],
-  "lib": ["es2016"],
-  "exclude": ["node_modules", "test"]
+    "target": "esnext",
+    // "moduleResolution": "bundler",
+    "types": [
+      "vite/client"
+    ]
+  }
 }
